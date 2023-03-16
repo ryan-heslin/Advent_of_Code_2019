@@ -2,24 +2,93 @@
 # Private output queue to collect three items, then write to common output to avoid race condition
 # Override program.write to do this
 # Write wrapper to read three instructions at once
-import pandas as pd
+from collections import deque
+from copy import deepcopy
+from typing import Generator
+from typing import List
+from typing import Union
 
-data = {
-    "Numbers": [10, 20, 30, 40, 60, 0.55, 1, 0.2, 0.9, 0.8],
-    "Letters": ["A", "B", "A", "B", "A", "A", "A", "B", "B", "B"],
-}
-
-df = pd.DataFrame(data)
-
-from collections import defaultdict
+import utils.intcode as ic
+from utils.utils import split_commas
 
 
-def apply_discount(data, values, letters):
-    df = data.copy()
-    discounts = defaultdict(lambda: 1)
-    discounts["A"] = 0.95
-    df[values] *= df[letters].map(discounts)
-    return df
+# Output values are appended as written, so this should be okay
+def output(program, value):
+    # 3 output vals mean complete packet, so send to common queue
+    program.write(value)
+    if len(program.private_output) == 3:
+        program.common_output.extend(program.private_output)
+        program.clear()
+    return -1
 
 
-apply_discount(data, "Numbers", "Letters")
+# Monkey-patch modified write operation
+output_code = 4
+operations = deepcopy(ic.operations)
+operations[output_code] = ic.Operation(output_code, 1, output, False)
+
+
+class NetworkedProgram(ic.Program):
+    def __init__(self, common_output, **kwargs):
+        super().__init__(**kwargs)
+        self.operations = operations
+        self.private_output = []
+        self.common_output = common_output
+
+    def write(self, value):
+        self.private_output.append(value)
+
+    def clear(self):
+        self.private_output = []
+
+    @property
+    def output(self):
+        return list(self.private_output)
+
+
+def run_network(code, size=50):
+    default = (-1,)
+    shared_queue = []
+    programs: List[Union["NetworkedProgram", None]] = [None] * size
+    instances: List[Union[Generator, None]] = [None] * size
+
+    for i in range(size):
+        programs[i] = NetworkedProgram(
+            code=dict(code), input=(i,), common_output=shared_queue
+        )
+        instances[i] = programs[i].eval(False)
+        next(instances[i])
+        instances[i].send(default)
+
+    part1 = NAT_packet = last_y = None
+
+    while True:
+        # breakpoint()
+        while shared_queue:
+            if len(shared_queue) < 3:
+                break
+            target = shared_queue[0]
+            data = shared_queue[1:3]
+            # print(target, data, sep="\t")
+            if target == 255:
+                if part1 is None:
+                    part1 = data[1]
+                NAT_packet = data
+            else:
+                instances[target].send(data)
+            del shared_queue[:3]
+
+        # for instance in instances:
+        #     instance.send(default)
+
+        instances[0].send(NAT_packet)
+        if NAT_packet[-1] == last_y:
+            return part1, last_y
+        last_y = NAT_packet[-1]
+        NAT_packet = None
+
+
+code = ic.Program.parse(split_commas("inputs/day23.txt"))
+part1, part2 = run_network(code)
+print(part1)
+print(part2)

@@ -125,10 +125,11 @@ operations = {op.code: op for op in operations}
 
 class Program:
 
-    __ops = operations
     __param_codes = param_codes
 
-    def __init__(self, code: dict[int, int], halt_code=99, input=None):
+    def __init__(
+        self, code: dict[int, int], halt_code=99, input=None, operations=operations
+    ):
         self.__code = defaultdict(lambda: 0)
         self.__code.update(dict(code))
         self.__halt_code = halt_code
@@ -138,6 +139,7 @@ class Program:
             self.__input = list(input)
         self.__output = []
         self.__position = self.relative_base = 0
+        self.operations = operations
 
     def modify(self, replacements: dict[int, int]):
         l = len(self)
@@ -163,7 +165,7 @@ class Program:
             raw_opcode = self.__code[self.__position]
             opcode, param_codes = self.read_opcode(raw_opcode)
             # KeyError here means unsupported operation
-            operation = cls.__ops[opcode]
+            operation = self.operations[opcode]
 
             if operation.code == self.__halt_code:
                 yield Exit.COMPLETE
@@ -200,14 +202,14 @@ class Program:
         opcode = code % 100
         code //= 100
 
-        n_params = self.__ops[opcode].n_params
+        n_params = self.operations[opcode].n_params
         param_codes = [None] * n_params
 
         for i in range(n_params):
             this_code = code % 10
             param_codes[i] = this_code
             code //= 10
-        if self.__ops[opcode].write:
+        if self.operations[opcode].write:
             param_codes[-1] = self.__param_codes[param_codes[-1]].literal_code
 
         return opcode, param_codes
