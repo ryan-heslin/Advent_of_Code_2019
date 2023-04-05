@@ -63,16 +63,10 @@ def slam_shuffle(cards, instructions):
 
     instructions = parse(instructions)
 
-    i = 0
-    seen = [cards[2020]]
     # Repeats a sequence of 10006 cards, all but 9529
-    while True:
-        for operation in instructions:
-            cards = operation(cards)
-        if cards[2020] in seen:
-            breakpoint()
-        seen.append(cards[2020])
-        i += 1
+    for operation in instructions:
+        breakpoint()
+        cards = operation(cards)
 
     return cards
 
@@ -89,11 +83,15 @@ n_cards = 119315717514047
 n_iterations = 101741582076661
 
 
+# l: modulus
+# reverse: (b, m) => (b + length -1, -m)
 # cut k: (b, m) => (b+k, m)
-# incrememnt k: (b, m) => (b, m + 2k)?
+# incrememnt k: (b, m) => (b, -km)
 # Each ordering is a linear congruence mod n_cards
 # (default: 0 + 1x)
 # Translate each operation to effect on congruences
 # Reduce shuffle sequence to single congruence (b, m)
 # Then the answer is (geometric series of b to r, m^r) (r := number of iterations)
 # Compute these huge numbers using modular exponentiation or extended Euclidean algorithm?
+
+# Some formula for computing huge powers modulo the length?

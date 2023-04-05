@@ -56,13 +56,6 @@ def find_square(ranges, side):
             if right <= bottom[1] and endpoint >= bottom[0]:
                 return y, rnge
 
-            # for i in range(y + 1, y + side):
-            #     lower = ranges[i]
-            #     if not ((right <= lower[1] and endpoint >= lower[0])):
-            #         break
-            # else:
-            #     return y, rnge
-
 
 def display(plot):
     return "\n".join(
