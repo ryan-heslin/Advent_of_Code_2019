@@ -10,7 +10,8 @@ def run_cycle(perm, code):
     programs = []
     for digit in perm:
         current = ic.Program(code, input=(last, digit))
-        current.eval()
+        gen = current.eval(False)
+        next(gen)
         last = current.output[-1]
         programs.append(current)
     return programs

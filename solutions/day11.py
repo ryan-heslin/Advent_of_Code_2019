@@ -29,18 +29,22 @@ def paint(code, start):
     # up
     orientation = -1j
     program = ic.Program(code=code)
+    gen = program.eval(False)
+    next(gen)
     panels = defaultdict(lambda: 0)
     painted = set()
     position = 0
     panels[position] = start
-    done = False
+    result = False
 
-    while not done:
-        program.update((panels[position],))
+    while result != ic.Exit.COMPLETE:
+        # print(panels[position])
+        result = gen.send((panels[position],))
         # Need 2 outputs
-        program.eval()
-        done = program.eval()
+        # next(gen)
+        # done = program.eval()
         color, direction = program.output[-2:]
+        # program.clear()
         panels[position] = color
         painted.add(position)
         orientation = rotations[direction](orientation)

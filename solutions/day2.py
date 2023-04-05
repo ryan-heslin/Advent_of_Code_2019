@@ -9,7 +9,8 @@ def find_values(code, target):
         for _ in range(100):
             this = Program(code).modify(replacements)
             try:
-                this.eval()
+                gen = this.eval(False)
+                next(gen)
                 if this.code[0] == target:
                     return replacements.values()
             except:
@@ -22,7 +23,8 @@ def find_values(code, target):
 
 code = Program.parse(split_commas("inputs/day2.txt"))
 program = Program(code).modify({1: 12, 2: 2})
-program.eval()
+gen = program.eval(False)
+next(gen)
 part1 = program.code[0]
 print(part1)
 
