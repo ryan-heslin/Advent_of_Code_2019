@@ -9,20 +9,20 @@ def run_cycle(perm, code):
     last = 0
     programs = []
     for digit in perm:
-        current = ic.Program(code, input=(last, digit))
-        gen = current.eval(False)
+        current = ic.Program(code, input=(digit, last))
+        gen = current.eval(True)
         next(gen)
         last = current.output[-1]
-        programs.append(current)
-    return programs
+        programs.append((current, gen))
+    return programs, last
 
 
 def try_permutations(code, permutations):
     best = -inf
 
     for perm in permutations:
-        result = run_cycle(perm, code)
-        best = max(best, result[-1].output[-1])
+        _, result = run_cycle(perm, code)
+        best = max(best, result)
 
     return best
 
@@ -30,16 +30,14 @@ def try_permutations(code, permutations):
 def cycle_permutations(code, permutations):
     best = -inf
     for perm in permutations:
-        programs = run_cycle(perm, code)
+        programs, previous = run_cycle(perm, code)
         last_value = None
-        previous = programs[-1].output[-1]
 
         # Final value on final halt is returned
-        while last_value is None:
-            for program in programs:
-                program.update([previous])
+        while last_value != ic.Exit.COMPLETE:
+            for program, gen in programs:
+                last_value = gen.send((previous,))
                 # True only if halt code encountered
-                last_value = program.eval()
                 previous = program.output[-1]
         best = max(best, previous)
     return best

@@ -6,6 +6,10 @@ from operator import attrgetter
 
 from utils.utils import split_lines
 
+# DO regular DFS, after replacing primitives with ore costs
+# Discard states if equal or better quantity of all materials reached w/ less ore
+# Maybe rank nodes by distance from end
+
 # Compare the same, regardless of quantity
 class Output:
     def __init__(self, element, quantity):
