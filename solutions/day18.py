@@ -10,13 +10,13 @@ ALPHABET = "abcdefghijklmnopqrstuv"
 
 
 class State:
-    def __init__(self, opened, distance, position) -> None:
+    def __init__(self, opened, distance, positions) -> None:
         self.opened = opened
         self.distance = distance
-        self.position = position
+        self.positions = positions
 
     def __repr__(self):
-        return (self.opened, self.distance, self.position).__repr__()
+        return (self.opened, self.distance, self.positions).__repr__()
 
     def update(self, new_key, new_dist, new_position):
         return self.__class__(
@@ -31,6 +31,34 @@ class State:
             or own_opened == other_opened
             and self.distance < other.distance
         )
+
+    def __hash__(self):
+        return hash((self.opened, self.positions))
+
+
+def sort_complex(x):
+    return sorted(x, key=lambda c: (c.imag, c.real))
+
+
+def overwrite_center(graph, new_center, origin):
+    parsed = new_center.splitlines()
+    xlen = len(parsed[0])
+    ylen = len(parsed)
+    center = complex(xlen // 2, ylen // 2)
+    origins = set()
+
+    for y, line in enumerate(parsed):
+        for x, char in enumerate(line):
+            coord = complex(x, y)
+            offset = coord - center
+            target = origin + offset
+            if char != "@":
+                if target in graph:
+                    graph.pop(target)
+            else:
+                origins.add(target)
+
+    return graph, tuple(sort_complex(origins))
 
 
 def parse(lines):
@@ -68,7 +96,7 @@ def make_neighbors(coords):
     return result
 
 
-def all_shortest_paths(source, goal, graph, exclusions):
+def all_shortest_paths(source, goal, graph, exclusions, neighbors):
 
     dist = defaultdict(lambda: inf)
     dist[source] = 0
@@ -111,10 +139,12 @@ def confirm_path(paths, graph, source, goal, opened):
 
     while queue:
         next = queue.popleft()
-        if graph[next].isupper() and not graph[next].lower() in opened:
-            continue
         if next == source:
             return True
+        # Is it okay if all shortest paths pass through other unlocked keys?
+        char = graph[next]
+        if next != goal and char.isalpha() and not char.lower() in opened:
+            continue
         before = paths[next]
         queue.extendleft(before)
 
@@ -126,30 +156,65 @@ def sort_trailing(data):
     return tuple(sorted(data[:-2]) + [data[-1]])
 
 
+# Group keys by quadrant
+def categorize_keys(letters, midpoint):
+    result = {0: set(), 1: set(), 2: set(), 3: set()}
+    # Reading order
+    for letter, coord in letters.items():
+        if coord.real < midpoint:
+            if coord.imag < midpoint:
+                result[0].add(letter)
+            else:
+                result[2].add(letter)
+        else:
+            if coord.imag < midpoint:
+                result[1].add(letter)
+            else:
+                result[3].add(letter)
+
+    return result
+
+
+def replace_tuple(x, i, replacement):
+    return x[:i] + (replacement,) + x[i + 1 :]
+
+
 # Just track bots separately, treat original as special case
-def find_shortest(origin, graph, keys):
+def find_shortest(origins, graph, keys, quadrants, neighbors):
     chars = "".join(sorted(keys.keys()))
     n_keys = len(chars)
+    n_origins = len(origins)
     doors = set(chars.upper())
     all_keys = set(chars)
     queue = PriorityQueue()
     dist = defaultdict(lambda: inf)
     shortest_dist = inf
     pairs = {}
-
-    # Find all possible first keys
-    for char in chars:
-        endpoint = keys[char]
-        distance, _ = all_shortest_paths(origin, endpoint, graph, doors)
-        # Path accessible from start
-        if distance < inf:
-            state = State(char, distance, endpoint)
-            queue.put(state, block=False)
-            dist[char] = distance
-
     empty = set()
+    visited = set()
+
+    # Find all possible first keys for each origin
+    # How to consistently order?
+    # breakpoint()
+    for i, origin in enumerate(origins):
+        # All possible chars
+        this_chars = quadrants[i]
+        for char in this_chars:
+            endpoint = keys[char]
+            distance, _ = all_shortest_paths(origin, endpoint, graph, doors, neighbors)
+            # Path accessible from start
+            if distance < inf and confirm_path(_, graph, origin, endpoint, empty):
+                print("")
+                start_positions = replace_tuple(origins, i, endpoint)
+                state = State(char, distance, replace_tuple(origins, i, endpoint))
+                queue.put(state, block=False)
+                dist[(char, start_positions)] = distance
+
     while queue.qsize():
+        # Repeat expansion procuedre for each bot, sticking to coords it can acess
+        # Make opened a dict with keys for each bot
         current = queue.get(block=False)
+        visited.add(current)
         if current.distance >= shortest_dist:
             continue
         # Found goal
@@ -157,41 +222,90 @@ def find_shortest(origin, graph, keys):
             shortest_dist = min(shortest_dist, current.distance)
             print(shortest_dist)
             continue
-        # Maybe optimize this to only run once per combination
         current_key = current.opened[-1]
-        # Doors still closed
-        remaining = all_keys - set(current.opened)
 
-        for new_key in remaining:
-            pair = (current_key, new_key)
-            if pair not in pairs:
-                distance, paths = all_shortest_paths(
-                    keys[current_key], keys[new_key], graph, empty
-                )
-                pairs[pair] = (distance, paths)
-            else:
-                distance, paths = pairs[pair]
-            if distance < inf and confirm_path(
-                paths, graph, current.position, keys[new_key], current.opened
-            ):
-                # Must beat any other path to this key
-                new_keys = current.opened + new_key
-                hash = tuple(sorted(current.opened)) + (new_key,)
-                if (
-                    new_distance := current.distance + distance
-                ) < inf and new_distance < dist[hash]:
-                    dist[hash] = new_distance
-                    new_state = State(new_keys, new_distance, keys[new_key])
-                    queue.put(new_state, block=False)
+        for i in range(n_origins):
+            # Doors still closed
+            done = set(current.opened)
+            remaining = quadrants[i] - done
+            # All keys found in this quadrant, so nothing to do
+            # if not len(remaining):
+            #     continue
+
+            # Hash to tuple of all bots' keys
+            for new_key in remaining:
+                pair = (current_key, new_key)
+                current_position = current.positions[i]
+                if pair not in pairs:
+                    distance, paths = all_shortest_paths(
+                        current_position, keys[new_key], graph, empty, neighbors
+                    )
+                    required = set(all_keys)
+                    pairs[pair] = [distance, paths, required]
+                distance, paths, required = pairs[pair]
+                # Optimize to record minimum opened doors needed for a path to exist
+                if distance < inf:
+                    if len(required - done):
+                        if confirm_path(
+                            paths,
+                            graph,
+                            current_position,
+                            keys[new_key],
+                            done,
+                        ):
+                            pass
+                            pairs[pair][2] = set(current.opened)
+                        else:
+                            continue
+
+                    # Must beat any other path to this key
+                    # Might not be correct for multi-bot case, since other bots'
+                    # positions not sorted
+                    # breakpoint()
+                    new_positions = replace_tuple(current.positions, i, keys[new_key])
+                    hash = (
+                        "".join(sorted(current.opened)) + new_key,
+                        new_positions,
+                    )
+                    if (
+                        new_distance := current.distance + distance
+                    ) < inf and new_distance < dist[hash]:
+                        dist[hash] = new_distance
+                        new_keys = current.opened + new_key
+                        new_state = State(
+                            new_keys,
+                            new_distance,
+                            new_positions,
+                        )
+                        if new_state not in visited:
+                            queue.put(new_state, block=False)
 
     return shortest_dist
 
 
 raw_input = split_lines("inputs/day18.txt")
 graph, keys, origin = parse(raw_input)
+if origin is None:
+    raise ValueError
+midpoint = origin.real
 neighbors = make_neighbors(graph)
-part1 = find_shortest(origin, graph, keys)
+part1 = find_shortest((origin,), graph, keys, {0: set(keys.keys())}, neighbors)
 print(part1)
+
+new_center = """@#@
+###
+@#@
+"""
+
+
+new_graph, origins = overwrite_center(graph, new_center, origin)
+# new_graph, keys, _ = parse(split_lines("inputs/day18test.txt"))
+# midpoint =
+# origins = (6 + 2j, 8 + 2j, 6 + 4j, 8 + 8j)
+neighbors = make_neighbors(new_graph)
+quadrants = categorize_keys(keys, midpoint)
+# quadrants = {0: {"d"}, 1: {"a"}, 2: {"b"}, 3: {"c"}}
+part2 = find_shortest(origins, new_graph, keys, quadrants, neighbors)
 # Track total distance, discard if behind best
 # Track permutations visited
 # FOr paths from start node, treat all doors as blocked
