@@ -204,7 +204,6 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
             distance, _ = all_shortest_paths(origin, endpoint, graph, doors, neighbors)
             # Path accessible from start
             if distance < inf and confirm_path(_, graph, origin, endpoint, empty):
-                print("")
                 start_positions = replace_tuple(origins, i, endpoint)
                 state = State(char, distance, replace_tuple(origins, i, endpoint))
                 queue.put(state, block=False)
@@ -221,9 +220,11 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
         if len(current.opened) == n_keys:
             shortest_dist = min(shortest_dist, current.distance)
             print(shortest_dist)
+            print(queue.qsize())
             continue
-        current_key = current.opened[-1]
+        # current_key = current.opened[-1]
 
+        # Maybe just return best if queue exceeds certain length
         for i in range(n_origins):
             # Doors still closed
             done = set(current.opened)
@@ -234,29 +235,20 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
 
             # Hash to tuple of all bots' keys
             for new_key in remaining:
-                pair = (current_key, new_key)
+                # pair = (current_key, new_key)
                 current_position = current.positions[i]
-                if pair not in pairs:
-                    distance, paths = all_shortest_paths(
-                        current_position, keys[new_key], graph, empty, neighbors
-                    )
-                    required = set(all_keys)
-                    pairs[pair] = [distance, paths, required]
-                distance, paths, required = pairs[pair]
+                # TODO cache this based on start position, remaining keys
+                distance, _ = all_shortest_paths(
+                    current_position,
+                    keys[new_key],
+                    graph,
+                    (remaining | set(map(str.upper, remaining))) - {new_key},
+                    neighbors,
+                )
+                # pairs[pair] = [distance, paths, required]
+                # distance, paths, required = pairs[pair]
                 # Optimize to record minimum opened doors needed for a path to exist
                 if distance < inf:
-                    if len(required - done):
-                        if confirm_path(
-                            paths,
-                            graph,
-                            current_position,
-                            keys[new_key],
-                            done,
-                        ):
-                            pass
-                            pairs[pair][2] = set(current.opened)
-                        else:
-                            continue
 
                     # Must beat any other path to this key
                     # Might not be correct for multi-bot case, since other bots'
@@ -264,7 +256,7 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
                     # breakpoint()
                     new_positions = replace_tuple(current.positions, i, keys[new_key])
                     hash = (
-                        "".join(sorted(current.opened)) + new_key,
+                        "".join(set(current.opened)),
                         new_positions,
                     )
                     if (

@@ -9,6 +9,8 @@ from utils.utils import split_lines
 # DO regular DFS, after replacing primitives with ore costs
 # Discard states if equal or better quantity of all materials reached w/ less ore
 # Maybe rank nodes by distance from end
+# Topo sort into groups of reactions
+# Do minimum amount of reactions in group i to unlock group i + 1
 
 # Compare the same, regardless of quantity
 class Output:
