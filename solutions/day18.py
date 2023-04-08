@@ -6,8 +6,6 @@ from queue import PriorityQueue
 
 from utils.utils import split_lines
 
-ALPHABET = "abcdefghijklmnopqrstuv"
-
 
 class State:
     def __init__(self, opened, distance, positions) -> None:
@@ -185,17 +183,15 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
     n_keys = len(chars)
     n_origins = len(origins)
     doors = set(chars.upper())
-    all_keys = set(chars)
     queue = PriorityQueue()
     dist = defaultdict(lambda: inf)
     shortest_dist = inf
-    pairs = {}
+    distances = {}
     empty = set()
     visited = set()
 
     # Find all possible first keys for each origin
     # How to consistently order?
-    # breakpoint()
     for i, origin in enumerate(origins):
         # All possible chars
         this_chars = quadrants[i]
@@ -219,8 +215,6 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
         # Found goal
         if len(current.opened) == n_keys:
             shortest_dist = min(shortest_dist, current.distance)
-            print(shortest_dist)
-            print(queue.qsize())
             continue
         # current_key = current.opened[-1]
 
@@ -238,30 +232,31 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
                 # pair = (current_key, new_key)
                 current_position = current.positions[i]
                 # TODO cache this based on start position, remaining keys
-                distance, _ = all_shortest_paths(
-                    current_position,
-                    keys[new_key],
-                    graph,
-                    (remaining | set(map(str.upper, remaining))) - {new_key},
-                    neighbors,
-                )
-                # pairs[pair] = [distance, paths, required]
-                # distance, paths, required = pairs[pair]
-                # Optimize to record minimum opened doors needed for a path to exist
+                endpoint = keys[new_key]
+                to_avoid = (remaining | set(map(str.upper, remaining))) - {new_key}
+                record = (current_position, endpoint, "".join(sorted(to_avoid)))
+                if record in distances:
+                    distance = distances[record]
+                else:
+                    distance, _ = all_shortest_paths(
+                        current_position,
+                        endpoint,
+                        graph,
+                        to_avoid,
+                        neighbors,
+                    )
+                    distances[record] = distance
                 if distance < inf:
 
                     # Must beat any other path to this key
-                    # Might not be correct for multi-bot case, since other bots'
-                    # positions not sorted
-                    # breakpoint()
                     new_positions = replace_tuple(current.positions, i, keys[new_key])
                     hash = (
-                        "".join(set(current.opened)),
+                        "".join(sorted(current.opened)),
                         new_positions,
                     )
-                    if (
-                        new_distance := current.distance + distance
-                    ) < inf and new_distance < dist[hash]:
+                    if (new_distance := current.distance + distance) < min(
+                        dist[hash], shortest_dist
+                    ):
                         dist[hash] = new_distance
                         new_keys = current.opened + new_key
                         new_state = State(
@@ -289,27 +284,7 @@ new_center = """@#@
 @#@
 """
 
-
 new_graph, origins = overwrite_center(graph, new_center, origin)
-# new_graph, keys, _ = parse(split_lines("inputs/day18test.txt"))
-# midpoint =
-# origins = (6 + 2j, 8 + 2j, 6 + 4j, 8 + 8j)
 neighbors = make_neighbors(new_graph)
 quadrants = categorize_keys(keys, midpoint)
-# quadrants = {0: {"d"}, 1: {"a"}, 2: {"b"}, 3: {"c"}}
 part2 = find_shortest(origins, new_graph, keys, quadrants, neighbors)
-# Track total distance, discard if behind best
-# Track permutations visited
-# FOr paths from start node, treat all doors as blocked
-# FOr key in keys:
-# while unexplored
-# if all keys found:
-# Mark shortest length
-# if key not found
-#   if path from this node to key not explored:
-# paths[(current, key)] := explore_path(current, key)
-# obstructions[(current, key)] := find_obstructions(paths)
-# Shortest path viable
-# if any (keys already found) in obstructions[(current, key)]
-# add node with already explored and new distance and new key to neighbors
-# Take path if any of obstructing doors open
