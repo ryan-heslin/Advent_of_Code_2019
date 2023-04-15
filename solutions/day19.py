@@ -1,7 +1,4 @@
-from collections import defaultdict
-from functools import reduce
 from itertools import product
-from operator import sub
 
 import utils.utils as ut
 from utils import intcode as ic

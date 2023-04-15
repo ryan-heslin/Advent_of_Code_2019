@@ -1,16 +1,9 @@
 import re
+from functools import reduce
+from math import floor
+from math import log2
 
 from utils.utils import split_lines
-
-
-class Deck:
-    def __init__(self, size) -> None:
-        self.cards = list(range(size))
-        self.left = 0
-        self.right = size - 1
-
-    def new_stack(self):
-        self.cards.reverse()
 
 
 def slam_shuffle(cards, instructions):
@@ -63,35 +56,70 @@ def slam_shuffle(cards, instructions):
 
     instructions = parse(instructions)
 
+    i = 0
     # Repeats a sequence of 10006 cards, all but 9529
+    # print(cards)
     for operation in instructions:
-        breakpoint()
         cards = operation(cards)
+        i += 1
 
     return cards
 
 
+def parse_congruences(raw):
+    n = len(raw)
+    result = [None] * n
+
+    for i, el in enumerate(raw_input):
+        if el == "deal into new stack":
+            result[i] = (-1, -1)
+        else:
+            parts = el.split(" ")
+            k = int(parts[-1])
+            if parts[0] == "cut":
+                result[i] = (1, -k)
+            else:
+                result[i] = (k, 0)
+
+    return result
+
+
+def multiply_congruences(x, y, modulus):
+    a = (x[0] * y[0]) % modulus
+    b = (x[1] * y[0] + y[1]) % modulus
+    return (a, b)
+
+
+def pow_compose(f, k, modulus):
+    result = (1, 0)
+    while k > 0:
+        if k % 2 != 0:
+            result = multiply_congruences(result, f, modulus)
+        k //= 2
+        f = multiply_congruences(f, f, modulus)
+    return result
+
+
 raw_input = split_lines("inputs/day22.txt")
-n_cards = 10007
-new_order = slam_shuffle(list(range(n_cards)), raw_input)
+part1_cards = 10007
+
+new_order = slam_shuffle(list(range(part1_cards)), raw_input)
 part1 = new_order.index(2019)
 print(part1)
 
-
-# Both are prime, which cannot be coincidence
-n_cards = 119315717514047
+part2_cards = 119315717514047
 n_iterations = 101741582076661
 
 
-# l: modulus
-# reverse: (b, m) => (b + length -1, -m)
-# cut k: (b, m) => (b+k, m)
-# incrememnt k: (b, m) => (b, -km)
-# Each ordering is a linear congruence mod n_cards
-# (default: 0 + 1x)
-# Translate each operation to effect on congruences
-# Reduce shuffle sequence to single congruence (b, m)
-# Then the answer is (geometric series of b to r, m^r) (r := number of iterations)
-# Compute these huge numbers using modular exponentiation or extended Euclidean algorithm?
+# Both
+b = 0
+m = 1
+a, b = reduce(
+    lambda a, b: multiply_congruences(a, b, part2_cards), parse_congruences(raw_input)
+)
 
-# Some formula for computing huge powers modulo the length?
+a_final, b_final = pow_compose((a, b), n_iterations, part2_cards)
+target = 2020
+part2 = ((target - b_final) * pow(a_final, part2_cards - 2, part2_cards)) % part2_cards
+assert ((a_final * part2 + b_final) % part2_cards) == target
+print(part2)
