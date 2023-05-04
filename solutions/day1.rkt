@@ -27,9 +27,9 @@
 (define numbers (map string->number raw-input))
 (define  fuel-summer (summer fuel) )
 (define part-1 (fuel-summer numbers))
-(print part-1)
-(print "\n")
+(display part-1)
+(display "\n")
 
 (define  fuel-rec-summer (summer fuel-rec) )
 (define part-2 (fuel-rec-summer numbers))
-(print part-2)
+(display part-2)

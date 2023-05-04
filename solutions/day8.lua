@@ -20,7 +20,6 @@ local parse = function(file, nrow, ncol)
             for col = 0, ncol - 1, 1 do
                 local index = layer + (row * ncol) + col
                 local digit = tonumber(string.sub(file, index, index))
-                print(digit)
                 table.insert(this_row, tonumber(digit))
             end
             table.insert(this_layer, this_row)

@@ -6,6 +6,7 @@
     (equal? lst sorted )
     )
   )
+
 (define (valid num strict)
   ;;TODO check if any digit repeated exactly twice
   (let ([str (number->string num)])
