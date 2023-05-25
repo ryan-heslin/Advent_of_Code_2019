@@ -1,6 +1,4 @@
 #lang racket
-
-
 ;;satellite -> parent
 ;; For each satellite except root
 ;; traverse(satellite)
@@ -55,13 +53,6 @@
     (complete (hash-ref graph dest) 0)
     ))
 
-
-;;(define (traverse satellite)
-;;(cond ())
-;; Save return value from recursion,
-;; Memoize to final value minus accumulator passed to this iteration
-;;)
-
 (define raw-input (file->lines "inputs/day6.txt"))
 (define root "COM")
 (define orbits (parse raw-input))
@@ -70,3 +61,4 @@
 (display "\n")
 (define part2 (solve-part2 orbits "YOU" "SAN" root))
 (print part2)
+(display "\n")

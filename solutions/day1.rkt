@@ -33,3 +33,4 @@
 (define  fuel-rec-summer (summer fuel-rec) )
 (define part-2 (fuel-rec-summer numbers))
 (display part-2)
+(display "\n")

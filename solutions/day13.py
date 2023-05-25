@@ -44,15 +44,7 @@ def play(code):
     code = dict(code)
     code[0] = 2
     program = ic.Program(code=code)
-    BALL = Graphics.BALL.value
     BLOCK = Graphics.BLOCK.value
-    replacements = {
-        Graphics.EMPTY.value: " ",
-        Graphics.WALL.value: "#",
-        Graphics.BLOCK.value: "X",
-        Graphics.PADDLE.value: "_",
-        BALL: "O",
-    }
 
     grid = {0: BLOCK}
     score = None
@@ -65,27 +57,10 @@ def play(code):
         grid, ball, paddle, score = draw(program.output, grid, ball, paddle, score)
         # Just follow the ball!
         movement = (int(ball.real - paddle.real),)
-        # print(movement)
-        # print(program.output)
-        # print(f"Score: {score}")
-        # print(ut.display(grid, replacements, reverse=False))
         program.clear()
-        # movement = None
-        # while movement is None:
-        #     movement = inputs.get(input("Move: "))
         result = gen.send(movement)
     _, _, _, result = draw(program.output, grid, ball, paddle, score)
     return result
-    # sleep(1)
-    # result = next(gen)
-    # TODO:
-    # First move under paddle, before direction established
-    # Count until next impact
-    # Feed that many of direction value
-    # Get new direction
-    # Repeat
-
-    return score
 
 
 code = ic.Program.parse(ut.split_commas("inputs/day13.txt"))
@@ -97,7 +72,6 @@ result = program.output
 grid, _, _, _ = draw(result, {})
 part1 = sum(v == Graphics.BLOCK.value for v in grid.values())
 print(part1)
-
 
 xmin = ymin = 0
 xmax = int(max(grid.keys(), key=ut.real).real)

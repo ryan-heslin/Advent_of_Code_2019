@@ -45,17 +45,16 @@ raw_input <- readLines("inputs/day16.txt") |>
     unlist(use.names = FALSE) |>
     as.integer()
 
-# raw_input <- 1:8
 pattern <- c(0, 1, 0, -1)
 result <- naive_fft(raw_input, 100, pattern)
 part1 <- result[1:8] |>
     as.character() |>
     paste(collapse = "")
-print(part1)
+cat(part1, "\n")
 
 offset <- as.character(raw_input[1:7]) |>
     paste(collapse = "") |>
     as.integer()
 
 part2 <- backsolve(raw_input, offset)
-print(part2)
+cat(part2, "\n")

@@ -1,7 +1,5 @@
 import re
 from functools import reduce
-from math import floor
-from math import log2
 
 from utils.utils import split_lines
 
@@ -19,7 +17,6 @@ def slam_shuffle(cards, instructions):
         pattern = re.compile(r"\s(?=-?\d+)")
         replacements = {"cut": cut, "deal with increment": increment}
         result = [None] * len(instructions)
-        # breakpoint()
 
         for i, line in enumerate(instructions):
             parts = re.split(pattern, line)
@@ -58,7 +55,6 @@ def slam_shuffle(cards, instructions):
 
     i = 0
     # Repeats a sequence of 10006 cards, all but 9529
-    # print(cards)
     for operation in instructions:
         cards = operation(cards)
         i += 1

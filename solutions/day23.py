@@ -1,8 +1,3 @@
-# Subclass Program to have private input queue but output queue shared with other programs
-# Private output queue to collect three items, then write to common output to avoid race condition
-# Override program.write to do this
-# Write wrapper to read three instructions at once
-from collections import deque
 from copy import deepcopy
 from typing import Generator
 from typing import List
@@ -61,25 +56,22 @@ def run_network(code, size=50):
         instances[i].send(default)
 
     part1 = NAT_packet = last_y = None
+    end_val = 255
 
     while True:
-        # breakpoint()
         while shared_queue:
             if len(shared_queue) < 3:
                 break
             target = shared_queue[0]
             data = shared_queue[1:3]
-            # print(target, data, sep="\t")
-            if target == 255:
+
+            if target == end_val:
                 if part1 is None:
                     part1 = data[1]
                 NAT_packet = data
             else:
                 instances[target].send(data)
             del shared_queue[:3]
-
-        # for instance in instances:
-        #     instance.send(default)
 
         instances[0].send(NAT_packet)
         if NAT_packet[-1] == last_y:

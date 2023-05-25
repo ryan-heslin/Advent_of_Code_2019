@@ -1,4 +1,3 @@
-from collections import defaultdict
 from collections import deque
 from functools import cache
 from itertools import chain
@@ -6,14 +5,6 @@ from operator import attrgetter
 
 from utils import intcode as ic
 from utils.utils import split_commas
-
-
-class ComparableComplex(complex):
-    def __lt__(self, other: complex):
-        return abs(self) < abs(other)
-
-    def __add__(self, other):
-        return ComparableComplex(super().__add__(other))
 
 
 # n, s, w, e
@@ -33,7 +24,6 @@ def display(coords, walls):
     xmax = int(max(combined, key=real).real)
     ymin = int(min(combined, key=imag).imag)
     ymax = int(max(combined, key=imag).imag)
-    pairs = zip(range(xmin, xmax + 1), range(ymin, ymax + 1))
     return "\n".join(
         "".join(
             "O"
@@ -104,7 +94,7 @@ def explore(program, start):
 # TODO Dijkstra to find furthest distance from oxygen?
 
 
-def flood_fill(origin, coords, walls):
+def flood_fill(origin, walls):
     current = (origin,)
     minutes = 0
     done = set()
@@ -124,16 +114,10 @@ def flood_fill(origin, coords, walls):
     return minutes
 
 
-# Backtrack on dead ends
-# Don't use recursion
-
-
 code = ic.Program.parse(split_commas("inputs/day15.txt"))
 program = ic.Program(code)
 part1, visited, system, walls = explore(program, 0)
 print(part1)
 
-part2 = flood_fill(system, visited, walls)
+part2 = flood_fill(system, walls)
 print(part2)
-
-# BEtween 404 and 407 uggghhh

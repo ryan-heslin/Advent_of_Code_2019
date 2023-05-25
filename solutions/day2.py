@@ -8,13 +8,10 @@ def find_values(code, target):
     for _ in range(100):
         for _ in range(100):
             this = Program(code).modify(replacements)
-            try:
-                gen = this.eval(False)
-                next(gen)
-                if this.code[0] == target:
-                    return replacements.values()
-            except:
-                pass
+            gen = this.eval(False)
+            next(gen)
+            if this.code[0] == target:
+                return replacements.values()
             replacements[2] += 1
         replacements[1] += 1
         replacements[2] = 0

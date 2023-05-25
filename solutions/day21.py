@@ -1,5 +1,3 @@
-from functools import reduce
-
 import utils.utils as ut
 from utils import intcode as ic
 
@@ -10,8 +8,6 @@ NEWLINE = ord("\n")
 
 def translate(lines, command):
     return list(map(ord, lines)) + list(map(ord, command + "\n"))
-    # lines = [[ord(chr) for chr in line] for line in lines]
-    # return reduce(lambda x, y: x + [NEWLINE] + y, lines)
 
 
 lines = """NOT A J
@@ -22,7 +18,6 @@ AND T J
 AND D J
 """
 
-# lines = "NOT A J\n"
 # Jumps 4 blocks, so check if  4 blocks away safe
 part1_lines = """NOT A J
 NOT B T
@@ -55,11 +50,7 @@ program = ic.Program(code)
 gen = program.eval(False)
 program.update(part1_input)
 next(gen)
-# next(gen)
-# next(gen)
-# next(gen)
 
-# print("".join(map(chr, program.output)))
 print(max(program.output))
 
 program = ic.Program(code)
@@ -68,4 +59,3 @@ program.update(part2_input)
 next(gen)
 part2 = max(program.output)
 print(part2)
-# print("".join(map(chr, program.output)))

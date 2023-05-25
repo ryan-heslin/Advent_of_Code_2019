@@ -8,7 +8,6 @@
   )
 
 (define (valid num strict)
-  ;;TODO check if any digit repeated exactly twice
   (let ([str (number->string num)])
     (if (and (regexp-match #px".*([0-9])\\1.*" str)
              (decreasing str)
@@ -32,3 +31,4 @@
 
 (define part2 (try-numbers (first range) (first (rest range)) #t))
 (print part2)
+(display "\n")

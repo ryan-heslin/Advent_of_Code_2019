@@ -44,8 +44,9 @@ def create_diags(coord, xmax, ymax):
     upper_x = xmax - x
     lower_y = -y
     upper_y = ymax - y
-    for dx in filter(lambda x: x != 0, range(lower_x, upper_x + 1)):
-        for dy in filter(lambda x: x != 0, range(lower_y, upper_y + 1)):
+
+    for dx in filter(bool, range(lower_x, upper_x + 1)):
+        for dy in filter(bool, range(lower_y, upper_y + 1)):
             normalized = Fraction(dx, dy)
             num = copysign(normalized.numerator, dx)
             denom = copysign(normalized.denominator, dy)

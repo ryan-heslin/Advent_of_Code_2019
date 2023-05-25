@@ -224,14 +224,9 @@ def find_shortest(origins, graph, keys, quadrants, neighbors):
             done = set(current.opened)
             remaining = quadrants[i] - done
             # All keys found in this quadrant, so nothing to do
-            # if not len(remaining):
-            #     continue
-
             # Hash to tuple of all bots' keys
             for new_key in remaining:
-                # pair = (current_key, new_key)
                 current_position = current.positions[i]
-                # TODO cache this based on start position, remaining keys
                 endpoint = keys[new_key]
                 to_avoid = (remaining | set(map(str.upper, remaining))) - {new_key}
                 record = (current_position, endpoint, "".join(sorted(to_avoid)))

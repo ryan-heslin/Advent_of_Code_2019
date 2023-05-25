@@ -4,8 +4,6 @@ from queue import PriorityQueue
 
 from utils.utils import split_lines
 
-# TODO fix for asymmetric input like example
-
 
 def complex2tuple(x):
     return (int(x.real), int(x.imag))
@@ -81,10 +79,6 @@ def dijkstra(graph, start, follow_portals=True):
 
     while Q.qsize():
         cost, _, current_node = Q.get(block=False)
-        # goals.discard(current_node)
-        # if not goals:
-        #     break
-
         for neighbor in graph[current_node]:
             alt = cost + 1
             if (follow_portals or abs(neighbor - current_node) == 1) and alt < dist[

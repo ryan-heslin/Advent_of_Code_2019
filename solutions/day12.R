@@ -8,7 +8,6 @@ parse <- function(lines) {
         t()
 }
 
-
 update_velocity <- function(positions, combinations, selections) {
     first <- positions[, combinations[, 1]]
     second <- positions[, combinations[, 2]]
@@ -44,17 +43,15 @@ simulate <- function(moons, iterations) {
     i <- 0
     while (i < iterations && !done) {
         i <- i + 1
-        moons[, , "velocity"] <- update_velocity(moons[, , "position"], combinations, selections) + moons[, , "velocity"]
+        moons[, , "velocity"] <- update_velocity(
+            moons[, , "position"],
+            combinations, selections
+        ) +
+            moons[, , "velocity"]
         moons[, , "position"] <- moons[, , "position"] + moons[, , "velocity"]
         result <- mapply(identical, initials, asplit(moons, MARGIN = 1))
-        # found <- which(result)
         periods[result & is.na(periods)] <- i
         done <- !any(is.na(periods))
-        # if (any(!is.na(periods))) {
-        #     browser()
-        # }
-        # print(i)
-        # print(moons)
     }
     list(moons, periods)
 }
@@ -72,7 +69,7 @@ gcd <- function(a, b, d = 0) {
     } else if (a %% 2 == 0) {
         return(gcd(a / 2, b, d))
     } else if (b %% 2 == 0) {
-        return(gcd(a, b / 2, d))
+        return(gcd(a, b %/% 2, d))
     } else {
         if (a < b) {
             tmp <- b
@@ -80,17 +77,17 @@ gcd <- function(a, b, d = 0) {
             a <- tmp
         }
         c <- a - b
-        return(gcd(c / 2, b, d))
+        return(gcd(c %/% 2, b, d))
     }
 }
-
 
 lcm <- function(numbers) {
     increments <- numbers
     while (length(unique(numbers)) > 1) {
         target <- numbers == min(numbers)
         if (sum(target) > 1) {
-            target <- target & increments == min(increments[target])
+            lowest <- min(increments[target])
+            target <- target & increments == lowest
         }
         numbers[target] <- numbers[target] + increments[target]
     }
@@ -102,7 +99,10 @@ positions <- parse(raw_input)
 
 moons <- array(c(positions, rep(0, prod(dim(positions)))),
     dim = c(dim(positions), 2),
-    dimnames = list(c("x", "y", "z"), c("Io", "Europa", "Ganymede", "Callisto"), c("position", "velocity"))
+    dimnames = list(
+        c("x", "y", "z"),
+        c("Io", "Europa", "Ganymede", "Callisto"), c("position", "velocity")
+    )
 )
 
 updated <- simulate(moons, 1000)[[1]]
@@ -113,6 +113,6 @@ cycles <- simulate(moons, Inf)[[2]]
 gcds <- combn(cycles, m = 2, FUN = \(x) gcd(x[[1]], x[[2]]))
 lcms <- combn(cycles, m = 2, FUN = prod) / gcds
 new <- gcd(cycles[[1]], lcms[[3]])
-part2 <- (cycles[[1]] * lcms[[3]]) / new
+part2 <- (cycles[[1]] * lcms[[3]]) %/% new
 
-print(as.character(part2))
+cat(as.character(part2), "\n")

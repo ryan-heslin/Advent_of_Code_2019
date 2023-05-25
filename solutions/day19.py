@@ -5,7 +5,6 @@ from utils import intcode as ic
 
 
 def solve(code, side):
-    dim = 100
     min_threshold = 50
 
     # If 10 or more in a row, note start and end
@@ -84,12 +83,3 @@ print(part1)
 y, rnge = find_square(ranges, side)
 part2 = (rnge[1] - side + 1) * 10000 + y
 print(part2)
-# plot = {}
-# for pair in input:
-#     program = ic.Program(code, input=pair)
-#     gen = program.eval(False)
-#     next(gen)
-#     plot[pair] = program.output.pop()
-#
-# part1 = sum(plot.values())
-# print(part1)

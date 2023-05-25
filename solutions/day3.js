@@ -19,10 +19,10 @@ function follow(instrs) {
     let position = [0, 0];
     let steps = 0;
 
-    for (instr of instrs) {
-        let dir = instr[0];
-        let axis = instr[1];
-        let distance = instr[2];
+    for (inst of instrs) {
+        let dir = inst[0];
+        let axis = inst[1];
+        let distance = inst[2];
         for (let i = 0; i < distance; i++) {
             steps++;
             position[axis] += dir;

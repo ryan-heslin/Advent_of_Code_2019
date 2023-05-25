@@ -6,7 +6,6 @@ code = ic.Program.parse(raw_input)
 program = ic.Program(code=code, input=[1])
 gen = program.eval(False)
 next(gen)
-# program.run_to_exhaustion()
 
 output = program.output
 part1 = output[-1]

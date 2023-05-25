@@ -141,10 +141,8 @@ def find_password(program):
         if not remaining:
             unexplored.pop(current, None)
         gen.send(COMMANDS[direction])
-        # current += DIRECTIONS[direction]
 
         # Not backtracking, so append path
-        # sleep(1)
         if goal is not None and not len(unexplored):
             break
 

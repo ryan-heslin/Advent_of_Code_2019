@@ -38,13 +38,9 @@ def paint(code, start):
     result = False
 
     while result != ic.Exit.COMPLETE:
-        # print(panels[position])
         result = gen.send((panels[position],))
         # Need 2 outputs
-        # next(gen)
-        # done = program.eval()
         color, direction = program.output[-2:]
-        # program.clear()
         panels[position] = color
         painted.add(position)
         orientation = rotations[direction](orientation)

@@ -82,7 +82,6 @@ def display(coords):
 
 
 def make_neighbors(xmin, xmax, ymin, ymax):
-    # @wraps
     @cache
     def neighbors(coord):
         x = coord.real
@@ -155,6 +154,7 @@ def translate_match(match):
 
 def make_functions(directions, limit=20):
     def format_regex(x, y, z):
+        # I apologize
         return r"{}".format(
             f"^([LR\\d,]{{{x}}}),\\1*([LR\\d,]{{{y}}}),(?:(?:\\1|\\2),)*([LR\\d,]{{{z}}}),(?:(?:\\1|\\2|\\3),)+(?:\\1|\\2|\\3)$"
         )

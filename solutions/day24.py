@@ -1,5 +1,4 @@
 from collections import defaultdict
-from functools import lru_cache
 from itertools import chain
 
 
@@ -57,7 +56,6 @@ def simulate(start, neighbors):
         for i in reversed(range(size)):
             status = state[i]
             # Read status
-            # state >>= 1
             adjacent = (state[pos] for pos in neighbors[i])
             s = sum(adjacent)
 
