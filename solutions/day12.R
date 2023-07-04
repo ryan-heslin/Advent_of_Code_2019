@@ -43,11 +43,7 @@ simulate <- function(moons, iterations) {
     i <- 0
     while (i < iterations && !done) {
         i <- i + 1
-        moons[, , "velocity"] <- update_velocity(
-            moons[, , "position"],
-            combinations, selections
-        ) +
-            moons[, , "velocity"]
+        moons[, , "velocity"] <- update_velocity(moons[, , "position"], combinations, selections) + moons[, , "velocity"]
         moons[, , "position"] <- moons[, , "position"] + moons[, , "velocity"]
         result <- mapply(identical, initials, asplit(moons, MARGIN = 1))
         periods[result & is.na(periods)] <- i
@@ -69,7 +65,7 @@ gcd <- function(a, b, d = 0) {
     } else if (a %% 2 == 0) {
         return(gcd(a / 2, b, d))
     } else if (b %% 2 == 0) {
-        return(gcd(a, b %/% 2, d))
+        return(gcd(a, b / 2, d))
     } else {
         if (a < b) {
             tmp <- b
@@ -77,17 +73,17 @@ gcd <- function(a, b, d = 0) {
             a <- tmp
         }
         c <- a - b
-        return(gcd(c %/% 2, b, d))
+        return(gcd(c / 2, b, d))
     }
 }
+
 
 lcm <- function(numbers) {
     increments <- numbers
     while (length(unique(numbers)) > 1) {
         target <- numbers == min(numbers)
         if (sum(target) > 1) {
-            lowest <- min(increments[target])
-            target <- target & increments == lowest
+            target <- target & increments == min(increments[target])
         }
         numbers[target] <- numbers[target] + increments[target]
     }
@@ -107,7 +103,7 @@ moons <- array(c(positions, rep(0, prod(dim(positions)))),
 
 updated <- simulate(moons, 1000)[[1]]
 part1 <- energy(updated)
-print(part1)
+cat(as.character(part1), "\n")
 
 cycles <- simulate(moons, Inf)[[2]]
 gcds <- combn(cycles, m = 2, FUN = \(x) gcd(x[[1]], x[[2]]))

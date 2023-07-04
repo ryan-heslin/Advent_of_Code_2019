@@ -17,7 +17,10 @@ def parse(lines, single=None):
     cutoff = 1 - margin
     conversion = complex(-margin, -margin)
     xmin = ymin = 0
-    xmax = ymax = len(raw_input) - (margin * 2) - 1
+    longest = max(map(len, raw_input))
+    diff = (margin * 2) + 1
+    xmax = longest - diff
+    ymax = len(raw_input) - diff
 
     def is_outer(coord):
         return (

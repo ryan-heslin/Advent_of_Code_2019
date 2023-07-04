@@ -32,6 +32,14 @@ def count_asteroids(point, asteroids, diags):
                     if current not in found:
                         found.add(current)
                     break
+    for offset in (1, -1, 1j, -1j):
+        current = point
+        while 0 <= current.real <= xmax and 0 <= current.imag <= ymax:
+            current += offset
+            if current in asteroids:
+                found.add(current)
+                break
+
     return len(found)
 
 
@@ -44,9 +52,8 @@ def create_diags(coord, xmax, ymax):
     upper_x = xmax - x
     lower_y = -y
     upper_y = ymax - y
-
-    for dx in filter(bool, range(lower_x, upper_x + 1)):
-        for dy in filter(bool, range(lower_y, upper_y + 1)):
+    for dx in filter(lambda x: x != 0, range(lower_x, upper_x + 1)):
+        for dy in filter(lambda x: x != 0, range(lower_y, upper_y + 1)):
             normalized = Fraction(dx, dy)
             num = copysign(normalized.numerator, dx)
             denom = copysign(normalized.denominator, dy)
