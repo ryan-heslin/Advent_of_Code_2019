@@ -31,9 +31,6 @@ def solve(code, side):
         if xes != []:
             x_start = xes[0]
             x_end = xes[-1]
-        # if x_start is None and x_end is None and ranges[y - 1] == (None, None):
-        #     ranges.pop(y - 1)
-        #     break
         ranges[y] = (x_start, x_end)
         y += 1
     return ranges, count
@@ -48,9 +45,10 @@ def find_square(ranges, side):
             lower = y + side - 1
             bottom = ranges.get(lower)
             if not lower:
-                return None
+                break
             if right <= bottom[1] and endpoint >= bottom[0]:
                 return y, rnge
+    return None, None
 
 
 def display(plot):
@@ -81,5 +79,6 @@ ranges, part1 = solve(code, side)
 print(part1)
 
 y, rnge = find_square(ranges, side)
+assert  rnge
 part2 = (rnge[1] - side + 1) * 10000 + y
 print(part2)
